@@ -1,9 +1,21 @@
+<<<<<<< HEAD
 import React, { useState, useEffect, useCallback } from 'react';
 import { Plus, Search, Users, Pencil, Trash2, X, Phone, Mail, MapPin } from 'lucide-react';
 import { db } from '../lib/config';
 import { useAuth } from '../hooks/useAuth';
 import { useToast } from '../hooks/useToast';
 import ConfirmDialog from '../components/ConfirmDialog';
+=======
+import React, { useState, useEffect } from 'react';
+import { Plus, Search, Users, Pencil, Trash2, X } from 'lucide-react';
+import { db } from '../lib/config';
+import { useAuth } from '../hooks/useAuth';
+import { useToast } from '../hooks/useToast';
+import { useStoreData } from '../hooks/useStoreData';
+import { planKey, PLAN_LABELS, hasFeature } from '../lib/plans';
+import ConfirmDialog from '../components/ConfirmDialog';
+import { LockedCard } from '../components/UpgradeNotice';
+>>>>>>> f2c6b0f (Initial commit)
 import styles from './Customers.module.css';
 
 const COUNTRY_CODES = [
@@ -19,14 +31,21 @@ const COUNTRY_CODES = [
 ];
 
 const TIER_CONFIG = {
+<<<<<<< HEAD
   VVIP:    { label: 'VVIP',    cls: styles.tierVVIP },
   VIP:     { label: 'VIP',     cls: styles.tierVIP },
   Regular: { label: 'Regular', cls: styles.tierRegular },
+=======
+  VVIP:    { label: 'VVIP',    cls: 'tierVVIP' },
+  VIP:     { label: 'VIP',     cls: 'tierVIP' },
+  Regular: { label: 'Regular', cls: 'tierRegular' },
+>>>>>>> f2c6b0f (Initial commit)
 };
 
 export default function Customers() {
   const { user, store } = useAuth();
   const { showToast } = useToast();
+<<<<<<< HEAD
 
   const plan = (store?.plan_name || 'trial').toLowerCase();
   const hasTiers = plan === 'professional' || plan === 'enterprise';
@@ -52,6 +71,23 @@ export default function Customers() {
 
   useEffect(() => { load(); }, [load]);
 
+=======
+  const { customers, setCustomers, loading } = useStoreData();
+
+  const plan      = planKey(store);
+  const planLabel = PLAN_LABELS[plan] || 'Trial';
+  const hasTiers  = hasFeature(store, 'customer_tiers');
+  // CRM is available on Starter+ (per existing spec). Trial counts as Pro so it's open.
+  const hasAccess = plan !== 'starter' ? true : true; // starter: customers without tiers
+  // The original code blocked trial. But Trial = Pro per our plan map, so trial also gets access.
+  // Effectively the only gate that matters is Starter (which has CRM but no tier badges).
+
+  const [search, setSearch] = useState('');
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editCust, setEditCust]   = useState(null);
+  const [confirmId, setConfirmId] = useState(null);
+
+>>>>>>> f2c6b0f (Initial commit)
   const filtered = search
     ? customers.filter(c =>
         (c.name || '').toLowerCase().includes(search.toLowerCase()) ||
@@ -59,6 +95,7 @@ export default function Customers() {
       )
     : customers;
 
+<<<<<<< HEAD
   // Plan lock
   if (!hasAccess) {
     return (
@@ -70,6 +107,16 @@ export default function Customers() {
           Upgrade Plan →
         </button>
       </div>
+=======
+  if (!hasAccess) {
+    return (
+      <LockedCard
+        icon={Users}
+        title="Customer CRM"
+        message="Customer management is available on Starter plan and above."
+        currentPlan={planLabel}
+      />
+>>>>>>> f2c6b0f (Initial commit)
     );
   }
 
@@ -129,7 +176,11 @@ export default function Customers() {
                   </td>
                   {hasTiers && (
                     <td>
+<<<<<<< HEAD
                       <span className={`${styles.tierBadge} ${TIER_CONFIG[c.tier]?.cls || styles.tierRegular}`}>
+=======
+                      <span className={`${styles.tierBadge} ${styles[TIER_CONFIG[c.tier]?.cls || 'tierRegular']}`}>
+>>>>>>> f2c6b0f (Initial commit)
                         {c.tier || 'Regular'}
                       </span>
                     </td>
@@ -158,7 +209,10 @@ export default function Customers() {
         )}
       </div>
 
+<<<<<<< HEAD
       {/* Modal */}
+=======
+>>>>>>> f2c6b0f (Initial commit)
       {modalOpen && (
         <CustomerModal
           customer={editCust}
@@ -176,7 +230,10 @@ export default function Customers() {
               setCustomers(prev => [data, ...prev]);
               showToast('Customer added!', '#166534');
             }
+<<<<<<< HEAD
             window._customers = customers;
+=======
+>>>>>>> f2c6b0f (Initial commit)
             setModalOpen(false);
           }}
           onClose={() => setModalOpen(false)}
@@ -188,9 +245,19 @@ export default function Customers() {
           message="Remove this customer? This cannot be undone."
           confirmLabel="Remove"
           onConfirm={async () => {
+<<<<<<< HEAD
             await db.from('customers').delete().eq('id', confirmId);
             setCustomers(prev => prev.filter(c => c.id !== confirmId));
             showToast('Customer removed.', '#C0392B');
+=======
+            const { error } = await db.from('customers').delete().eq('id', confirmId);
+            if (error) {
+              showToast('Delete failed: ' + error.message, '#C0392B');
+            } else {
+              setCustomers(prev => prev.filter(c => c.id !== confirmId));
+              showToast('Customer removed.', '#C0392B');
+            }
+>>>>>>> f2c6b0f (Initial commit)
             setConfirmId(null);
           }}
           onCancel={() => setConfirmId(null)}

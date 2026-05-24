@@ -62,9 +62,15 @@ export default function Login() {
 
         {/* Hero */}
         <div className={styles.heroSection}>
+<<<<<<< HEAD
           <h1 className={styles.heroTitle}>Your Collection,<br/><em>Perfectly Curated</em></h1>
           <p className={styles.heroSub}>
             AI-powered inventory management, WhatsApp customer engagement, and beautiful analytics — all in one elegant platform.
+=======
+          <h1 className={styles.heroTitle}>Your Jewellery Store,<br/><em>Beautifully Organised</em></h1>
+          <p className={styles.heroSub}>
+            Inventory management, WhatsApp customer engagement, and clear analytics — built for Indian jewellery stores.
+>>>>>>> f2c6b0f (Initial commit)
           </p>
         </div>
 

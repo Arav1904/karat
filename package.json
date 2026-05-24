@@ -1,6 +1,10 @@
 {
   "name": "karat-jewellery-inventory",
+<<<<<<< HEAD
   "version": "2.0.0",
+=======
+  "version": "3.0.0",
+>>>>>>> f2c6b0f (Initial commit)
   "type": "module",
   "scripts": {
     "dev": "vite",

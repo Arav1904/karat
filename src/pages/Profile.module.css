@@ -102,3 +102,28 @@
   .grid { grid-template-columns:1fr; }
   .planHero { padding:20px; }
 }
+<<<<<<< HEAD
+=======
+
+/* Plan-limit rows */
+.limitRow { display: flex; flex-direction: column; gap: 5px; }
+.limitHead {
+  display: flex; justify-content: space-between; align-items: baseline;
+}
+.limitLabel {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 12px; color: var(--ink-mid); font-weight: 500;
+}
+.limitVals {
+  font-size: 12px; color: var(--ink-soft);
+}
+.limitVals strong { color: var(--navy); font-weight: 600; font-size: 13px; }
+.limitTrack {
+  height: 6px; background: rgba(11,24,41,.06);
+  border-radius: 99px; overflow: hidden;
+}
+.limitFill {
+  height: 100%; border-radius: 99px;
+  transition: width .6s ease;
+}
+>>>>>>> f2c6b0f (Initial commit)

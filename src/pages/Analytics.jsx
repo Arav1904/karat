@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import {
+<<<<<<< HEAD
   BarChart2, MessageSquare, Package, Cpu, Shirt, TrendingUp, ArrowRight,
   Gem, Users, Activity, PieChartIcon, BarChart as BarChartIcon, Layers
 } from 'lucide-react';
@@ -8,6 +9,23 @@ import {
   XAxis, YAxis, Tooltip, ResponsiveContainer, Legend, CartesianGrid, LineChart, Line
 } from 'recharts';
 import { useAuth } from '../hooks/useAuth';
+=======
+  MessageSquare, Package, Cpu, Shirt, ArrowRight,
+  Gem, Users, Activity, BarChart as BarChartIcon, Layers,
+  Info, Zap, ShieldCheck,
+} from 'lucide-react';
+import {
+  AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell, RadialBarChart, RadialBar,
+  XAxis, YAxis, Tooltip, ResponsiveContainer, Legend, CartesianGrid,
+} from 'recharts';
+import { useAuth } from '../hooks/useAuth';
+import { useStoreData } from '../hooks/useStoreData';
+import {
+  effectiveLimit, planKey, PLAN_LABELS, analyticsTier, isProTier,
+  conversationTokenCopy, hasFeature, fmtLimit,
+} from '../lib/plans';
+import { UpgradeBanner } from '../components/UpgradeNotice';
+>>>>>>> f2c6b0f (Initial commit)
 import styles from './Analytics.module.css';
 
 const GOLD_PALETTE = ['#C9A84C','#E8CC7A','#8B6914','#d4a843','#f0e0a0','#a07830','#b5912a'];
@@ -41,10 +59,16 @@ function SectionTitle({ icon: Icon, children }) {
 }
 
 function UsageCard({ icon: Icon, label, used, limit }) {
+<<<<<<< HEAD
   const isUnlimited = !limit || limit === 'unlimited';
   const pct = isUnlimited ? 0 : Math.min(100, Math.round(used/limit*100));
   const fillColor = pct>=90?'#ef4444':pct>=70?'#f59e0b':'#22c55e';
 
+=======
+  const isUnlimited = !limit || limit === Infinity || limit === 'unlimited';
+  const pct = isUnlimited ? 0 : Math.min(100, Math.round(used/limit*100));
+  const fillColor = pct>=90?'#ef4444':pct>=70?'#f59e0b':'#22c55e';
+>>>>>>> f2c6b0f (Initial commit)
   return (
     <div className={styles.usageCard}>
       <div className={styles.usageTop}>
@@ -52,8 +76,13 @@ function UsageCard({ icon: Icon, label, used, limit }) {
         <span className={styles.usageLabel}>{label}</span>
       </div>
       <div className={styles.usageNumbers}>
+<<<<<<< HEAD
         <span className={styles.usageUsed}>{used}</span>
         {!isUnlimited && <span className={styles.usageLimit}>/ {limit}</span>}
+=======
+        <span className={styles.usageUsed}>{Number(used || 0).toLocaleString('en-IN')}</span>
+        {!isUnlimited && <span className={styles.usageLimit}>/ {fmtLimit(limit)}</span>}
+>>>>>>> f2c6b0f (Initial commit)
         {isUnlimited && <span className={styles.usageLimit}>· unlimited</span>}
       </div>
       {!isUnlimited && (
@@ -77,6 +106,7 @@ function ChartBox({ title, height=220, children }) {
   );
 }
 
+<<<<<<< HEAD
 export default function Analytics() {
   const { store } = useAuth();
 
@@ -113,6 +143,59 @@ export default function Analytics() {
   const stockPie = [{name:'In Stock',value:inStock},{name:'Sold Out',value:soldOut}].filter(d=>d.value>0);
 
   // Price distribution buckets
+=======
+function EmptyChart({ icon: Icon, text }) {
+  return (
+    <div style={{display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',
+      height:'100%',gap:8,color:'rgba(11,24,41,.35)',fontSize:12,padding:'12px 0'}}>
+      <Icon size={30} strokeWidth={1}/>
+      <span style={{textAlign:'center'}}>{text}</span>
+    </div>
+  );
+}
+
+export default function Analytics() {
+  const { store } = useAuth();
+  const { products, customers, monthlyUsage } = useStoreData();
+
+  const planName = planKey(store);
+  const planLabel = PLAN_LABELS[planName] || 'Trial';
+  const isPro    = isProTier(store);                  // Trial counts as Pro
+  const tier     = analyticsTier(store);              // 'STARTER' | 'PROFESSIONAL' | 'ENTERPRISE'
+  const showPro  = tier === 'PROFESSIONAL' || tier === 'ENTERPRISE';
+
+  // ── Limits ─────────────────────────────────────────────────────
+  const convUsed  = store?._conv_used  || 0;
+  const convLimit = effectiveLimit(store, 'conversations');
+  const prodLimit = effectiveLimit(store, 'products');
+  const aiUsed    = store?._ai_used    || 0;
+  const aiLimit   = effectiveLimit(store, 'ai_models');
+  const vtUsed    = store?._vt_used    || 0;
+
+  // ── Aggregates ─────────────────────────────────────────────────
+  const catData = useMemo(() => {
+    const m = {};
+    products.forEach(p => { const c = p.category || 'Other'; m[c]=(m[c]||0)+1; });
+    return Object.entries(m).sort((a,b)=>b[1]-a[1]).map(([name,value])=>({name,value}));
+  }, [products]);
+
+  const matData = useMemo(() => {
+    const m = {};
+    products.forEach(p => { if(p.material){ m[p.material]=(m[p.material]||0)+1; }});
+    return Object.entries(m).sort((a,b)=>b[1]-a[1]).slice(0,7).map(([name,value])=>({name,value}));
+  }, [products]);
+
+  const caratData = useMemo(() => {
+    const m = {};
+    products.forEach(p => { if(p.gold_carat){ m[p.gold_carat]=(m[p.gold_carat]||0)+1; }});
+    return Object.entries(m).map(([name,value])=>({name,value}));
+  }, [products]);
+
+  const inStock = products.filter(p=>p.in_stock===true).length;
+  const soldOut = products.filter(p=>p.in_stock===false).length;
+  const stockPie = [{name:'In Stock',value:inStock},{name:'Sold Out',value:soldOut}].filter(d=>d.value>0);
+
+>>>>>>> f2c6b0f (Initial commit)
   const priceBuckets = useMemo(() => {
     const buckets = [
       {name:'<₹5K',    min:0,     max:5000,   value:0},
@@ -121,12 +204,17 @@ export default function Analytics() {
       {name:'₹50–1L',  min:50000, max:100000, value:0},
       {name:'>₹1L',    min:100000,max:Infinity,value:0},
     ];
+<<<<<<< HEAD
     prods.forEach(p => {
+=======
+    products.forEach(p => {
+>>>>>>> f2c6b0f (Initial commit)
       if (!p.price) return;
       const b = buckets.find(b => p.price>=b.min && p.price<b.max);
       if (b) b.value++;
     });
     return buckets;
+<<<<<<< HEAD
   }, [prods.length]);
 
   // Tier data
@@ -158,6 +246,40 @@ export default function Analytics() {
     pct: prods.length > 0 ? Math.round(d.value/prods.length*100) : 0
   }));
 
+=======
+  }, [products]);
+
+  const tierData = useMemo(() => {
+    const m = {VVIP:0,VIP:0,Regular:0};
+    customers.forEach(c=>{ if(m[c.tier]!==undefined) m[c.tier]++; });
+    return Object.entries(m).map(([name,value])=>({name,value}));
+  }, [customers]);
+
+  // Build last-6-months trend from monthly_usage if available, else flat zeros
+  const monthlyTrend = useMemo(() => {
+    const out = [];
+    const now = new Date();
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      out.push({
+        month: d.toLocaleDateString('en-IN', { month: 'short' }),
+        conversations: i === 0 ? convUsed : 0,
+      });
+    }
+    return out;
+  }, [convUsed]);
+
+  // Top-5 categories for the radial composition chart
+  const radialData = catData.slice(0,5).map((d,i) => ({
+    ...d,
+    fill: GOLD_PALETTE[i],
+    pct: products.length > 0 ? Math.round(d.value/products.length*100) : 0
+  }));
+
+  // Token / pricing copy
+  const tokenInfo = conversationTokenCopy(planName);
+
+>>>>>>> f2c6b0f (Initial commit)
   return (
     <div className={styles.page}>
       {/* Header */}
@@ -165,14 +287,21 @@ export default function Analytics() {
         <div>
           <h2 className={styles.title}>Analytics</h2>
           <p className={styles.sub}>
+<<<<<<< HEAD
             {isPro
               ? `Advanced insights · Professional Plan — ${prods.length} SKUs · ${custs.length} customers`
               : `Inventory analytics · ${plan.charAt(0).toUpperCase()+plan.slice(1)} Plan`}
+=======
+            {tier === 'ENTERPRISE'   && `Enterprise insights · ${products.length} SKUs · ${customers.length} customers`}
+            {tier === 'PROFESSIONAL' && `Advanced insights · ${planLabel} Plan · ${products.length} SKUs · ${customers.length} customers`}
+            {tier === 'STARTER'      && `Inventory analytics · ${planLabel} Plan`}
+>>>>>>> f2c6b0f (Initial commit)
           </p>
         </div>
       </div>
 
       <div className={styles.wrap}>
+<<<<<<< HEAD
         {/* Upgrade banner */}
         {!isPro && (
           <div className={styles.upgradeBanner}>
@@ -198,6 +327,66 @@ export default function Analytics() {
         </div>
 
         {/* Inventory snapshot */}
+=======
+        {/* Upgrade banner — only for Starter (Trial gets Pro analytics) */}
+        {!isPro && (
+          <UpgradeBanner
+            title="Unlock Full Analytics"
+            message="Professional plan adds customer tier analysis, conversation trends, AI usage breakdown, and category composition."
+            ctaLabel="Upgrade Plan"
+          />
+        )}
+
+        {/* ── Usage This Month ───────────────────────────────────── */}
+        <SectionTitle icon={Activity}>Usage This Month</SectionTitle>
+        <div className={styles.usageGrid}>
+          <UsageCard icon={MessageSquare} label="Conversations" used={convUsed}        limit={convLimit}/>
+          <UsageCard icon={Package}       label="Products"      used={products.length} limit={prodLimit}/>
+          {hasFeature(store, 'ai_models') && (
+            <UsageCard icon={Cpu} label="AI Model Calls" used={aiUsed} limit={aiLimit}/>
+          )}
+          {hasFeature(store, 'virtual_tryon') && (
+            <UsageCard icon={Shirt} label="Virtual Try-Ons" used={vtUsed} limit={Infinity}/>
+          )}
+        </div>
+
+        {/* ── How Conversations Work — pricing explainer ─────────── */}
+        <div className={styles.explainerCard}>
+          <div className={styles.explainerHead}>
+            <div className={styles.explainerIcon}><Info size={16} color="#8B6914"/></div>
+            <div>
+              <div className={styles.explainerTitle}>How Your Conversation Quota Works</div>
+              <div className={styles.explainerSub}>
+                You're billed per conversation, not per token. We absorb the AI compute cost — you get predictable monthly pricing.
+              </div>
+            </div>
+          </div>
+          <div className={styles.explainerGrid}>
+            <div className={styles.explainerStat}>
+              <div className={styles.explainerLbl}>One conversation =</div>
+              <div className={styles.explainerVal}>1 customer chat session</div>
+              <div className={styles.explainerNote}>{tokenInfo.fairUse}</div>
+            </div>
+            <div className={styles.explainerStat}>
+              <div className={styles.explainerLbl}>Avg. tokens per chat</div>
+              <div className={styles.explainerVal}>~{tokenInfo.tokensPerConv.toLocaleString('en-IN')}</div>
+              <div className={styles.explainerNote}>covers all back-and-forth in one session</div>
+            </div>
+            <div className={styles.explainerStat}>
+              <div className={styles.explainerLbl}>Your AI engine</div>
+              <div className={styles.explainerVal}>{tokenInfo.model}</div>
+              <div className={styles.explainerNote}>upgrades with your plan</div>
+            </div>
+            <div className={styles.explainerStat}>
+              <div className={styles.explainerLbl}>Monthly allotment</div>
+              <div className={styles.explainerVal}>{fmtLimit(convLimit)} conversations</div>
+              <div className={styles.explainerNote}>~{Math.round((convLimit === Infinity ? 100000 : convLimit) * tokenInfo.tokensPerConv / 1000).toLocaleString('en-IN')}K tokens included</div>
+            </div>
+          </div>
+        </div>
+
+        {/* ── Inventory Breakdown — visible to all tiers ─────────── */}
+>>>>>>> f2c6b0f (Initial commit)
         <SectionTitle icon={Package}>Inventory Breakdown</SectionTitle>
         <div className={styles.chartGrid}>
           <ChartBox title="Items by Category" height={240}>
@@ -206,7 +395,11 @@ export default function Analytics() {
                 <BarChart data={catData} margin={{top:4,right:4,left:-20,bottom:0}} barSize={22}>
                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(11,24,41,.05)" vertical={false}/>
                   <XAxis dataKey="name" tick={{fontSize:10,fontFamily:'DM Sans',fill:'rgba(11,24,41,.45)'}} axisLine={false} tickLine={false}/>
+<<<<<<< HEAD
                   <YAxis tick={{fontSize:9,fontFamily:'DM Sans',fill:'rgba(11,24,41,.35)'}} axisLine={false} tickLine={false}/>
+=======
+                  <YAxis tick={{fontSize:9,fontFamily:'DM Sans',fill:'rgba(11,24,41,.35)'}} axisLine={false} tickLine={false} allowDecimals={false}/>
+>>>>>>> f2c6b0f (Initial commit)
                   <Tooltip content={<CustomTooltip/>}/>
                   <Bar dataKey="value" name="Products" radius={[5,5,0,0]}>
                     {catData.map((_,i)=><Cell key={i} fill={GOLD_PALETTE[i%GOLD_PALETTE.length]}/>)}
@@ -250,10 +443,16 @@ export default function Analytics() {
           </ChartBox>
         </div>
 
+<<<<<<< HEAD
         {/* Second chart row */}
         <div className={styles.chartGrid2}>
           <ChartBox title="Price Distribution" height={220}>
             {prods.some(p=>p.price) ? (
+=======
+        <div className={styles.chartGrid2}>
+          <ChartBox title="Price Distribution" height={220}>
+            {products.some(p=>p.price) ? (
+>>>>>>> f2c6b0f (Initial commit)
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={priceBuckets} margin={{top:4,right:4,left:-20,bottom:0}} barSize={28}>
                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(11,24,41,.05)" vertical={false}/>
@@ -268,8 +467,13 @@ export default function Analytics() {
             ) : <EmptyChart icon={BarChartIcon} text="Add product prices to see distribution"/>}
           </ChartBox>
 
+<<<<<<< HEAD
           {caratData.length > 0 ? (
             <ChartBox title="Gold Carat Breakdown" height={220}>
+=======
+          <ChartBox title="Metal Purity Breakdown" height={220}>
+            {caratData.length > 0 ? (
+>>>>>>> f2c6b0f (Initial commit)
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie data={caratData} cx="50%" cy="50%" outerRadius={76} dataKey="value" paddingAngle={3}>
@@ -280,6 +484,7 @@ export default function Analytics() {
                     formatter={(v)=><span style={{fontSize:11,color:'rgba(11,24,41,.55)'}}>{v}</span>}/>
                 </PieChart>
               </ResponsiveContainer>
+<<<<<<< HEAD
             </ChartBox>
           ) : (
             <ChartBox title="Gold Carat Breakdown" height={220}>
@@ -290,11 +495,23 @@ export default function Analytics() {
 
         {/* Pro analytics */}
         {isPro && (
+=======
+            ) : <EmptyChart icon={Gem} text="Add products with metal info to see breakdown"/>}
+          </ChartBox>
+        </div>
+
+        {/* ── Pro-tier analytics ─────────────────────────────────── */}
+        {showPro && (
+>>>>>>> f2c6b0f (Initial commit)
           <>
             <SectionTitle icon={Users}>Customer Insights</SectionTitle>
             <div className={styles.chartGrid}>
               <ChartBox title="Customer Tiers" height={220}>
+<<<<<<< HEAD
                 {custs.length > 0 ? (
+=======
+                {customers.length > 0 ? (
+>>>>>>> f2c6b0f (Initial commit)
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={tierData} margin={{top:4,right:4,left:-20,bottom:0}} barSize={36}>
                       <CartesianGrid strokeDasharray="3 3" stroke="rgba(11,24,41,.05)" vertical={false}/>
@@ -311,12 +528,20 @@ export default function Analytics() {
                 ) : <EmptyChart icon={Users} text="No customers yet"/>}
               </ChartBox>
 
+<<<<<<< HEAD
               <ChartBox title="Conversation Trend" height={220}>
+=======
+              <ChartBox title="Conversation Trend (6 mo)" height={220}>
+>>>>>>> f2c6b0f (Initial commit)
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart data={monthlyTrend} margin={{top:4,right:4,left:-20,bottom:0}}>
                     <defs>
                       <linearGradient id="convGrad" x1="0" y1="0" x2="0" y2="1">
+<<<<<<< HEAD
                         <stop offset="5%"  stopColor="#C9A84C" stopOpacity={0.15}/>
+=======
+                        <stop offset="5%"  stopColor="#C9A84C" stopOpacity={0.18}/>
+>>>>>>> f2c6b0f (Initial commit)
                         <stop offset="95%" stopColor="#C9A84C" stopOpacity={0}/>
                       </linearGradient>
                     </defs>
@@ -331,6 +556,7 @@ export default function Analytics() {
                 </ResponsiveContainer>
               </ChartBox>
 
+<<<<<<< HEAD
               <ChartBox title="Customer Growth" height={220}>
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart data={monthlyTrend} margin={{top:4,right:4,left:-20,bottom:0}}>
@@ -350,6 +576,26 @@ export default function Analytics() {
                   </AreaChart>
                 </ResponsiveContainer>
               </ChartBox>
+=======
+              {hasFeature(store, 'ai_models') && (
+                <ChartBox title="AI Model Usage" height={220}>
+                  <div className={styles.aiUsageBox}>
+                    <div className={styles.aiUsageBig}>
+                      <Zap size={24} color="#7c3aed"/>
+                      <div>
+                        <div className={styles.aiUsageNum}>{aiUsed.toLocaleString('en-IN')}</div>
+                        <div className={styles.aiUsageLbl}>calls this month</div>
+                      </div>
+                    </div>
+                    <div className={styles.aiUsageMeta}>
+                      <div><span>Limit</span><strong>{fmtLimit(aiLimit)}</strong></div>
+                      <div><span>Model</span><strong>{tokenInfo.model}</strong></div>
+                      <div><span>Source</span><strong>stores.ai_models_limit</strong></div>
+                    </div>
+                  </div>
+                </ChartBox>
+              )}
+>>>>>>> f2c6b0f (Initial commit)
             </div>
 
             {/* Category composition radial */}
@@ -393,10 +639,20 @@ export default function Analytics() {
             )}
           </>
         )}
+<<<<<<< HEAD
+=======
+
+        {/* ── Footer note ───────────────────────────────────────── */}
+        <div className={styles.footerNote}>
+          <ShieldCheck size={12}/>
+          All numbers refresh on page load · Plan limits come from your <code>stores</code> row in Supabase.
+        </div>
+>>>>>>> f2c6b0f (Initial commit)
       </div>
     </div>
   );
 }
+<<<<<<< HEAD
 
 function EmptyChart({ icon: Icon, text }) {
   return (
@@ -407,3 +663,5 @@ function EmptyChart({ icon: Icon, text }) {
     </div>
   );
 }
+=======
+>>>>>>> f2c6b0f (Initial commit)

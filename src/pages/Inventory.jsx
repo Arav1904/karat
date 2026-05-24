@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import {
   Search, SlidersHorizontal, Plus, Package, TrendingUp, TrendingDown,
@@ -19,11 +20,41 @@ const SORT_OPTIONS = [
   { value: 'name-asc',  label: 'Name A → Z' },
   { value: 'name-desc', label: 'Name Z → A' },
   { value: 'weight-asc',label: 'Weight: Light → Heavy' },
+=======
+import React, { useState, useCallback, useMemo, useRef, useEffect } from 'react';
+import {
+  Search, SlidersHorizontal, Plus, Package, TrendingUp, TrendingDown,
+  X, Grid, List, ArrowUpDown, Tag, Gem,
+} from 'lucide-react';
+import {
+  db, CLOUDINARY_CLOUD, CLOUDINARY_PRESET, CLOUDINARY_VIDEO_PRESET,
+  CATEGORIES, GOLD_CARATS, MAX_IMAGE_BYTES,
+} from '../lib/config';
+import { effectiveLimit, planKey, PLAN_LABELS, hasFeature } from '../lib/plans';
+import { useAuth } from '../hooks/useAuth';
+import { useToast } from '../hooks/useToast';
+import { useStoreData } from '../hooks/useStoreData';
+import ProductModal from '../components/ProductModal';
+import ProductCard from '../components/ProductCard';
+import ConfirmDialog from '../components/ConfirmDialog';
+import { UpgradeDialog } from '../components/UpgradeNotice';
+import styles from './Inventory.module.css';
+
+const SORT_OPTIONS = [
+  { value: 'newest',     label: 'Newest First' },
+  { value: 'oldest',     label: 'Oldest First' },
+  { value: 'price-asc',  label: 'Price: Low → High' },
+  { value: 'price-desc', label: 'Price: High → Low' },
+  { value: 'name-asc',   label: 'Name A → Z' },
+  { value: 'name-desc',  label: 'Name Z → A' },
+  { value: 'weight-asc', label: 'Weight: Light → Heavy' },
+>>>>>>> f2c6b0f (Initial commit)
 ];
 
 function matchesSearch(p, q) {
   if (!q) return true;
   const lower = q.toLowerCase();
+<<<<<<< HEAD
   // DB actual columns: sku, name, gold_carat, sub_category, material, occasion, diamond_purity
   const fields = [
     p.sku, p.name, p.category, p.sub_category,
@@ -31,6 +62,13 @@ function matchesSearch(p, q) {
     p.ai_description, p.description,
   ];
   return fields.some(f => f && f.toLowerCase().includes(lower));
+=======
+  const fields = [
+    p.sku, p.name, p.category, p.sub_category,
+    p.material, p.gold_carat, p.occasion, p.diamond_purity, p.description,
+  ];
+  return fields.some(f => f && String(f).toLowerCase().includes(lower));
+>>>>>>> f2c6b0f (Initial commit)
 }
 
 function sortProducts(arr, sort) {
@@ -46,6 +84,7 @@ function sortProducts(arr, sort) {
   }
 }
 
+<<<<<<< HEAD
 export default function Inventory() {
   const { user, store } = useAuth();
   const { showToast } = useToast();
@@ -86,12 +125,83 @@ export default function Inventory() {
 
   useEffect(() => { loadProducts(); }, [loadProducts]);
 
+=======
+// ── Cloudinary upload helpers ───────────────────────────────────────
+async function uploadImageToCloudinary(file) {
+  const fd = new FormData();
+  fd.append('file', file);
+  fd.append('upload_preset', CLOUDINARY_PRESET);
+  const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/image/upload`, {
+    method: 'POST', body: fd,
+  });
+  if (!res.ok) throw new Error('Image upload failed');
+  const json = await res.json();
+  return json.secure_url || null;
+}
+
+async function uploadVideoToCloudinary(file) {
+  const fd = new FormData();
+  fd.append('file', file);
+  fd.append('upload_preset', CLOUDINARY_VIDEO_PRESET);
+  // Cloudinary auto-detects video → /video/upload endpoint
+  const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/video/upload`, {
+    method: 'POST', body: fd,
+  });
+  if (!res.ok) {
+    const txt = await res.text().catch(() => '');
+    throw new Error('Video upload failed: ' + txt.slice(0, 200));
+  }
+  const json = await res.json();
+  return json.secure_url || null;
+}
+
+// Rough storage estimate for images already uploaded (best-effort; the
+// real check belongs in a Supabase aggregate or Cloudinary API call,
+// but this catches the common "running well past plan" case).
+function estimateStorageGB(products) {
+  // Cloudinary doesn't expose per-asset size cheaply on the client.
+  // Estimate ~0.6 MB / image as a reasonable jewellery-photo average.
+  let imgBytes = 0;
+  for (const p of products) {
+    const n = Array.isArray(p.images) ? p.images.length : (p.images ? 1 : 0);
+    imgBytes += n * 600 * 1024;
+    if (p.video_url) imgBytes += 4 * 1024 * 1024; // ~4 MB per 10s video
+  }
+  return imgBytes / (1024 * 1024 * 1024);
+}
+
+export default function Inventory() {
+  const { user, store } = useAuth();
+  const { showToast } = useToast();
+  const { products, setProducts, reload } = useStoreData();
+
+  const [activeCat, setActiveCat]       = useState('All');
+  const [search, setSearch]             = useState('');
+  const [sort, setSort]                 = useState('newest');
+  const [stockFilter, setStockFilter]   = useState('All');
+  const [caratFilter, setCaratFilter]   = useState('');
+  const [showFilters, setShowFilters]   = useState(false);
+  const [viewMode, setViewMode]         = useState('grid');
+  const [sortOpen, setSortOpen]         = useState(false);
+  const sortRef = useRef(null);
+
+  const [modalOpen, setModalOpen]       = useState(false);
+  const [editProduct, setEditProduct]   = useState(null);
+  const [confirmOpen, setConfirmOpen]   = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState(null);
+
+  // Limit-reached dialog state
+  const [upgradeOpen, setUpgradeOpen]   = useState(null); // { feature, message } | null
+
+  // Close sort dropdown on outside click
+>>>>>>> f2c6b0f (Initial commit)
   useEffect(() => {
     const handler = (e) => { if (sortRef.current && !sortRef.current.contains(e.target)) setSortOpen(false); };
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
   }, []);
 
+<<<<<<< HEAD
   // in_stock is a boolean in the DB; map filter labels to boolean comparisons
   const filtered = useMemo(() => {
     let arr = products;
@@ -99,6 +209,171 @@ export default function Inventory() {
     if (stockFilter === 'In Stock')  arr = arr.filter(p => p.in_stock === true);
     if (stockFilter === 'Sold Out')  arr = arr.filter(p => p.in_stock === false);
     if (caratFilter) arr = arr.filter(p => p.gold_carat === caratFilter);
+=======
+  // ── Limits ──────────────────────────────────────────────────────
+  const prodLimit     = effectiveLimit(store, 'products');
+  const storageLimit  = effectiveLimit(store, 'image_storage');
+  const planName      = planKey(store);
+  const storageUsedGB = useMemo(() => estimateStorageGB(products), [products]);
+  const isProdLimitHit    = prodLimit !== Infinity && products.length >= prodLimit;
+  const isStorageLimitHit = storageLimit !== Infinity && storageUsedGB >= storageLimit;
+
+  // SKU uniqueness check — current rows only
+  const checkSKU = useCallback(async (sku, excludeId) => {
+    const { data } = await db.from('products')
+      .select('id, owner_id')
+      .eq('sku', sku)
+      .eq('owner_id', user.id)
+      .eq('is_current', true);
+    if (!data) return true;
+    return excludeId ? data.every(d => d.id === excludeId) : data.length === 0;
+  }, [user]);
+
+  // ── Save handler ────────────────────────────────────────────────
+  // Direct Supabase UPDATE on edit (one row per product — fixes
+  // "multiple records per edit" bug). New products go through INSERT.
+  // No n8n round-trip, no AI generation, no soft-insert duplicates.
+  const handleSave = useCallback(async ({ form, slotFiles, existingUrls, videoFile, existingVideoUrl, isEdit }) => {
+    // 1) Upload any new images to Cloudinary
+    const imageUrls = [...existingUrls];
+    for (let i = 0; i < 5; i++) {
+      if (slotFiles[i]) {
+        try {
+          imageUrls[i] = await uploadImageToCloudinary(slotFiles[i]);
+        } catch (e) {
+          imageUrls[i] = null;
+          showToast(`Image ${i+1} upload failed`, '#C0392B');
+        }
+      }
+    }
+    const finalImages = imageUrls.filter(Boolean);
+
+    // 2) Upload video if Pro plan + a video was chosen
+    let finalVideoUrl = existingVideoUrl || null;
+    if (videoFile && hasFeature(store, 'video_upload')) {
+      try {
+        finalVideoUrl = await uploadVideoToCloudinary(videoFile);
+      } catch (e) {
+        showToast('Video upload failed — saving product without video', '#C0392B');
+        finalVideoUrl = existingVideoUrl || null;
+      }
+    }
+
+    // 3) Build payload (DB column names only; AI fields excluded)
+    const payload = {
+      sku:            form.sku,
+      name:           form.name,
+      category:       form.category,
+      sub_category:   form.sub_category || null,
+      gold_carat:     form.gold_carat,
+      diamond_purity: form.diamond_purity || null,
+      material:       form.material || null,
+      occasion:       form.occasion || null,
+      weight:         form.weight,
+      price:          form.price,
+      stock_qty:      form.stock_qty,
+      description:    form.description || null,
+      in_stock:       form.in_stock,
+      owner_id:       user.id,
+      images:         finalImages,
+      primary_image_url: finalImages[0] || null,
+      video_url:      finalVideoUrl,
+      is_current:     true,
+    };
+
+    if (isEdit && editProduct) {
+      // ── Direct UPDATE: 1 row per product ──────────────────────
+      const { data, error } = await db
+        .from('products')
+        .update(payload)
+        .eq('id', editProduct.id)
+        .eq('owner_id', user.id)
+        .select()
+        .single();
+      if (error) throw error;
+      setProducts(prev => prev.map(p => p.id === data.id ? data : p));
+      showToast('Product updated!', '#166534');
+    } else {
+      // ── INSERT new product ────────────────────────────────────
+      const { data, error } = await db
+        .from('products')
+        .insert(payload)
+        .select()
+        .single();
+      if (error) throw error;
+      setProducts(prev => [data, ...prev]);
+      showToast('Product added!', '#166534');
+    }
+
+    setModalOpen(false);
+    setEditProduct(null);
+  }, [user, store, editProduct, setProducts, showToast]);
+
+  // ── Delete (soft) ───────────────────────────────────────────────
+  // Pure client-side soft delete. Avoids the legacy n8n delete webhook.
+  const handleDelete = useCallback(async () => {
+    if (!deleteTarget) return;
+    setConfirmOpen(false);
+    try {
+      const { error } = await db
+        .from('products')
+        .update({ is_current: false })
+        .eq('id', deleteTarget)
+        .eq('owner_id', user.id);
+      if (error) throw error;
+      setProducts(prev => prev.filter(p => p.id !== deleteTarget));
+      showToast('Product deleted.', '#C0392B');
+    } catch (err) {
+      showToast('Delete failed: ' + err.message, '#C0392B');
+    }
+    setDeleteTarget(null);
+  }, [deleteTarget, user, setProducts, showToast]);
+
+  const handleToggleStock = useCallback(async (product) => {
+    const newInStock = !product.in_stock;
+    const { error } = await db
+      .from('products')
+      .update({ in_stock: newInStock })
+      .eq('id', product.id)
+      .eq('owner_id', user.id);
+    if (!error) {
+      setProducts(prev => prev.map(p => p.id === product.id ? { ...p, in_stock: newInStock } : p));
+      showToast(`Marked as ${newInStock ? 'In Stock' : 'Sold Out'}`, newInStock ? '#166534' : '#C0392B');
+    } else {
+      showToast('Could not update stock status', '#C0392B');
+    }
+  }, [user, setProducts, showToast]);
+
+  // ── UI handlers ────────────────────────────────────────────────
+  const openAdd = () => {
+    if (isProdLimitHit) {
+      setUpgradeOpen({
+        feature: 'Adding more products',
+        message: `You've reached your plan's product limit of ${prodLimit}. Upgrade to add more.`,
+      });
+      return;
+    }
+    if (isStorageLimitHit) {
+      setUpgradeOpen({
+        feature: 'Image storage limit',
+        message: `You've used ${storageUsedGB.toFixed(1)} GB of your ${storageLimit} GB image storage. Upgrade or remove some products.`,
+      });
+      return;
+    }
+    setEditProduct(null);
+    setModalOpen(true);
+  };
+  const openEdit  = (p)   => { setEditProduct(p); setModalOpen(true); };
+  const openDelete = (id) => { setDeleteTarget(id); setConfirmOpen(true); };
+
+  // ── Derived view state ─────────────────────────────────────────
+  const filtered = useMemo(() => {
+    let arr = products;
+    if (activeCat !== 'All')         arr = arr.filter(p => p.category === activeCat);
+    if (stockFilter === 'In Stock')  arr = arr.filter(p => p.in_stock === true);
+    if (stockFilter === 'Sold Out')  arr = arr.filter(p => p.in_stock === false);
+    if (caratFilter)                 arr = arr.filter(p => p.gold_carat === caratFilter);
+>>>>>>> f2c6b0f (Initial commit)
     arr = arr.filter(p => matchesSearch(p, search));
     return sortProducts(arr, sort);
   }, [products, activeCat, stockFilter, caratFilter, search, sort]);
@@ -111,6 +386,7 @@ export default function Inventory() {
 
   const totalIn  = useMemo(() => products.filter(p => p.in_stock === true).length, [products]);
   const totalOut = useMemo(() => products.filter(p => p.in_stock === false).length, [products]);
+<<<<<<< HEAD
 
   // Check SKU uniqueness using `sku` column
   const checkSKU = useCallback(async (sku, excludeId) => {
@@ -201,6 +477,8 @@ export default function Inventory() {
   const openEdit = (p) => { setEditProduct(p); setModalOpen(true); };
   const openDelete = (id) => { setDeleteTarget(id); setConfirmOpen(true); };
 
+=======
+>>>>>>> f2c6b0f (Initial commit)
   const hasFilters = stockFilter !== 'All' || caratFilter;
 
   return (
@@ -234,6 +512,7 @@ export default function Inventory() {
             <div className={styles.statLbl}>Sold Out</div>
           </div>
         </div>
+<<<<<<< HEAD
         {store?.product_limit && (
           <div className={styles.stat}>
             <div className={styles.statIconWrap} style={{ background: 'rgba(201,168,76,.1)' }}>
@@ -247,6 +526,22 @@ export default function Inventory() {
             </div>
           </div>
         )}
+=======
+        <div className={styles.stat}>
+          <div className={styles.statIconWrap} style={{ background: 'rgba(201,168,76,.1)' }}>
+            <Gem size={18} color="#C9A84C" strokeWidth={1.5} />
+          </div>
+          <div>
+            <div className={styles.statNum} style={{ color: '#8B6914' }}>
+              {products.length}
+              <span style={{ fontSize: 13, fontWeight: 400, color: 'rgba(13,27,42,.38)' }}>
+                /{prodLimit === Infinity ? '∞' : prodLimit}
+              </span>
+            </div>
+            <div className={styles.statLbl}>Plan Usage · {PLAN_LABELS[planName]}</div>
+          </div>
+        </div>
+>>>>>>> f2c6b0f (Initial commit)
       </div>
 
       {/* Category chips */}
@@ -268,7 +563,11 @@ export default function Inventory() {
         ))}
       </div>
 
+<<<<<<< HEAD
       {/* Header */}
+=======
+      {/* Header / toolbar */}
+>>>>>>> f2c6b0f (Initial commit)
       <div className={styles.header}>
         <div>
           <h2 className={styles.title}>
@@ -282,7 +581,11 @@ export default function Inventory() {
             <Search size={15} className={styles.searchIcon} />
             <input
               className={styles.searchInput}
+<<<<<<< HEAD
               placeholder="Search SKU, name, gold, diamond, earring…"
+=======
+              placeholder="Search SKU, name, category, material…"
+>>>>>>> f2c6b0f (Initial commit)
               value={search}
               onChange={e => setSearch(e.target.value)}
             />
@@ -355,7 +658,11 @@ export default function Inventory() {
             </div>
           </div>
           <div className={styles.filterGroup}>
+<<<<<<< HEAD
             <span className={styles.filterLabel}><Gem size={12} /> Gold Carat</span>
+=======
+            <span className={styles.filterLabel}><Gem size={12} /> Metal Purity</span>
+>>>>>>> f2c6b0f (Initial commit)
             <div className={styles.filterPills}>
               <button
                 className={`${styles.filterPill} ${!caratFilter ? styles.filterPillActive : ''}`}
@@ -387,12 +694,16 @@ export default function Inventory() {
 
       {/* Product grid/list */}
       <div className={styles.gridArea}>
+<<<<<<< HEAD
         {loading ? (
           <div className={styles.loadingState}>
             <div className="spinner" />
             <p>Loading inventory…</p>
           </div>
         ) : filtered.length === 0 ? (
+=======
+        {filtered.length === 0 ? (
+>>>>>>> f2c6b0f (Initial commit)
           <div className={styles.emptyState}>
             <Package size={48} strokeWidth={1} color="rgba(13,27,42,.2)" />
             <h3>{search ? 'No results found' : 'No products yet'}</h3>
@@ -422,7 +733,11 @@ export default function Inventory() {
       {modalOpen && (
         <ProductModal
           product={editProduct}
+<<<<<<< HEAD
           allProducts={products}
+=======
+          store={store}
+>>>>>>> f2c6b0f (Initial commit)
           onSave={handleSave}
           onClose={() => { setModalOpen(false); setEditProduct(null); }}
           checkSKU={checkSKU}
@@ -435,6 +750,18 @@ export default function Inventory() {
           onCancel={() => { setConfirmOpen(false); setDeleteTarget(null); }}
         />
       )}
+<<<<<<< HEAD
+=======
+      {upgradeOpen && (
+        <UpgradeDialog
+          feature={upgradeOpen.feature}
+          currentPlan={PLAN_LABELS[planName] || 'Trial'}
+          recommendedPlan={planName === 'starter' ? 'Professional' : 'Enterprise'}
+          message={upgradeOpen.message}
+          onClose={() => setUpgradeOpen(null)}
+        />
+      )}
+>>>>>>> f2c6b0f (Initial commit)
     </div>
   );
 }

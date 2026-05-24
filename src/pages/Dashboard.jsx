@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import {
+<<<<<<< HEAD
   Package, TrendingUp, TrendingDown, Users, MessageSquare,
   ArrowRight, Gem, Crown, Sparkles, BarChart2, AlertTriangle,
   Activity, ShoppingBag, Star, CheckCircle
@@ -13,6 +14,25 @@ import styles from './Dashboard.module.css';
 
 const GOLD_PALETTE = ['#C9A84C','#E8CC7A','#8B6914','#F5E9C5','#d4a843','#a07830'];
 const PLAN_LABELS = { trial:'Trial', starter:'Starter', professional:'Professional', enterprise:'Enterprise' };
+=======
+  Package, Users, MessageSquare,
+  ArrowRight, Gem, Crown, BarChart2, AlertTriangle,
+  ShoppingBag, Star, CheckCircle, IndianRupee,
+} from 'lucide-react';
+import {
+  BarChart, Bar, PieChart, Pie, Cell,
+  XAxis, YAxis, Tooltip, ResponsiveContainer,
+} from 'recharts';
+import { useAuth } from '../hooks/useAuth';
+import { useStoreData } from '../hooks/useStoreData';
+import {
+  effectiveLimit, planKey, PLAN_LABELS, hasFeature, fmtLimit, pctUsed,
+} from '../lib/plans';
+import { fmtINR } from '../lib/pricing';
+import styles from './Dashboard.module.css';
+
+const GOLD_PALETTE = ['#C9A84C','#E8CC7A','#8B6914','#F5E9C5','#d4a843','#a07830'];
+>>>>>>> f2c6b0f (Initial commit)
 
 const CustomTooltip = ({ active, payload, label }) => {
   if (!active || !payload?.length) return null;
@@ -32,7 +52,11 @@ const CustomTooltip = ({ active, payload, label }) => {
   );
 };
 
+<<<<<<< HEAD
 function StatCard({ icon: Icon, label, value, sub, color='#C9A84C', bg='rgba(201,168,76,.08)', trend }) {
+=======
+function StatCard({ icon: Icon, label, value, sub, color='#C9A84C', bg='rgba(201,168,76,.08)' }) {
+>>>>>>> f2c6b0f (Initial commit)
   return (
     <div className={styles.statCard}>
       <div className={styles.statIcon} style={{background:bg}}>
@@ -43,18 +67,22 @@ function StatCard({ icon: Icon, label, value, sub, color='#C9A84C', bg='rgba(201
         <div className={styles.statLabel}>{label}</div>
         {sub && <div className={styles.statSub}>{sub}</div>}
       </div>
+<<<<<<< HEAD
       {trend !== undefined && (
         <div className={styles.statTrend} style={{color: trend >= 0 ? '#15803d' : '#be123c'}}>
           {trend >= 0 ? <TrendingUp size={14}/> : <TrendingDown size={14}/>}
           <span>{Math.abs(trend)}%</span>
         </div>
       )}
+=======
+>>>>>>> f2c6b0f (Initial commit)
     </div>
   );
 }
 
 export default function Dashboard({ onNavigate }) {
   const { user, store } = useAuth();
+<<<<<<< HEAD
 
   const prods = window._products || [];
   const custs = window._customers || [];
@@ -76,12 +104,32 @@ export default function Dashboard({ onNavigate }) {
       .slice(0,6)
       .map(([name,value])=>({name,value}));
   }, [prods.length]);
+=======
+  const { products, customers, loading } = useStoreData();
+
+  const name      = store?.owner_name || user?.user_metadata?.full_name || 'Owner';
+  const planName  = planKey(store);
+  const planLabel = PLAN_LABELS[planName] || 'Trial';
+  const isPro     = hasFeature(store, 'customer_tiers'); // Pro/Trial/Enterprise
+
+  // ── Counts & limits ────────────────────────────────────────────
+  const inStock  = useMemo(() => products.filter(p => p.in_stock === true).length, [products]);
+  const soldOut  = useMemo(() => products.filter(p => p.in_stock === false).length, [products]);
+  const stockPct = products.length > 0 ? Math.round(inStock / products.length * 100) : 0;
+
+  const catData = useMemo(() => {
+    const m = {};
+    products.forEach(p => { const c = p.category || 'Other'; m[c] = (m[c]||0)+1; });
+    return Object.entries(m).sort((a,b)=>b[1]-a[1]).slice(0,6).map(([name,value])=>({name,value}));
+  }, [products]);
+>>>>>>> f2c6b0f (Initial commit)
 
   const stockPieData = [
     { name:'In Stock', value: inStock },
     { name:'Sold Out', value: soldOut },
   ].filter(d=>d.value>0);
 
+<<<<<<< HEAD
   const convUsed  = store?._conv_used  || 0;
   const convLimit = store?.conversation_limit || 50;
   const convPct   = convLimit ? Math.min(100, Math.round(convUsed/convLimit*100)) : 0;
@@ -106,6 +154,30 @@ export default function Dashboard({ onNavigate }) {
     {month:'May',conversations:convUsed,products:prods.length},
   ];
 
+=======
+  const convUsed   = store?._conv_used   || 0;
+  const convLimit  = effectiveLimit(store, 'conversations');
+  const convPct    = pctUsed(convUsed, convLimit);
+  const prodLimit  = effectiveLimit(store, 'products');
+  const prodPct    = pctUsed(products.length, prodLimit);
+  const aiUsed     = store?._ai_used   || 0;
+  const aiLimit    = effectiveLimit(store, 'ai_models');
+
+  const totalValue = useMemo(() => {
+    return products.reduce((sum, p) => sum + (Number(p.price) || 0), 0);
+  }, [products]);
+
+  // ── Alerts ─────────────────────────────────────────────────────
+  const alerts = [];
+  if (convPct >= 90)  alerts.push({ type:'warn', msg:`WhatsApp conversations at ${convPct}% of monthly limit` });
+  if (prodPct >= 90)  alerts.push({ type:'warn', msg:`Product count at ${prodPct}% of plan limit` });
+  if (soldOut > inStock && products.length > 0) alerts.push({ type:'info', msg:`${soldOut} items out of stock — consider restocking` });
+  if (store?.plan_expires_at) {
+    const daysLeft = Math.ceil((new Date(store.plan_expires_at) - Date.now()) / 86400000);
+    if (daysLeft <= 7 && daysLeft >= 0) alerts.push({ type:'warn', msg:`Plan expires in ${daysLeft} day${daysLeft!==1?'s':''}` });
+  }
+
+>>>>>>> f2c6b0f (Initial commit)
   const greeting = () => {
     const h = new Date().getHours();
     if (h < 12) return 'Good morning';
@@ -115,6 +187,7 @@ export default function Dashboard({ onNavigate }) {
 
   return (
     <div className={styles.page}>
+<<<<<<< HEAD
       {/* Hero */}
       <div className={styles.hero}>
         <div className={styles.heroContent}>
@@ -134,6 +207,38 @@ export default function Dashboard({ onNavigate }) {
             <polygon points="60,20 98,42 98,78 60,100 22,78 22,42" stroke="#C9A84C" strokeWidth="1"/>
             <circle cx="60" cy="60" r="14" stroke="#C9A84C" strokeWidth="1.5"/>
           </svg>
+=======
+      {/* Hero — compact, single-line */}
+      <div className={styles.hero}>
+        <div className={styles.heroLeft}>
+          <div className={styles.heroGreet}>{greeting()},</div>
+          <div className={styles.heroNameRow}>
+            <h1 className={styles.heroName}>{name.split(' ')[0]}</h1>
+            <div className={styles.heroBadge}>
+              <Crown size={11} />
+              <span>{planLabel}</span>
+            </div>
+          </div>
+          <p className={styles.heroSub}>
+            {store?.store_name ? store.store_name : 'Your jewellery dashboard'}
+          </p>
+        </div>
+        <div className={styles.heroStatsMini}>
+          <div className={styles.heroStat}>
+            <div className={styles.heroStatNum}>{products.length}</div>
+            <div className={styles.heroStatLbl}>SKUs</div>
+          </div>
+          <div className={styles.heroStatDiv}/>
+          <div className={styles.heroStat}>
+            <div className={styles.heroStatNum}>{customers.length}</div>
+            <div className={styles.heroStatLbl}>Customers</div>
+          </div>
+          <div className={styles.heroStatDiv}/>
+          <div className={styles.heroStat}>
+            <div className={styles.heroStatNum}>{convUsed}</div>
+            <div className={styles.heroStatLbl}>Chats</div>
+          </div>
+>>>>>>> f2c6b0f (Initial commit)
         </div>
       </div>
 
@@ -150,6 +255,7 @@ export default function Dashboard({ onNavigate }) {
           </div>
         )}
 
+<<<<<<< HEAD
         {/* KPI cards */}
         <div className={styles.kpiGrid}>
           <StatCard icon={Package}     label="Total SKUs"      value={prods.length}  sub={`${prodPct}% of plan limit`} color="#C9A84C" bg="rgba(201,168,76,.09)" />
@@ -157,6 +263,42 @@ export default function Dashboard({ onNavigate }) {
           <StatCard icon={ShoppingBag} label="Sold Out"        value={soldOut}       sub="items need restock"          color="#be123c" bg="rgba(190,18,60,.08)" />
           <StatCard icon={MessageSquare} label="Conversations" value={convUsed}      sub={`of ${convLimit === 'unlimited' ? '∞' : convLimit} this month`} color="#17305A" bg="rgba(23,48,90,.09)" />
           {isPro && <StatCard icon={Users} label="Customers"   value={custs.length}  sub="total registered"            color="#7c3aed" bg="rgba(124,58,237,.09)" />}
+=======
+        {/* KPI cards — always show real numbers */}
+        <div className={styles.kpiGrid}>
+          <StatCard
+            icon={Package} label="Total SKUs" value={loading ? '…' : products.length}
+            sub={`${prodPct}% of ${fmtLimit(prodLimit)}`}
+            color="#C9A84C" bg="rgba(201,168,76,.09)"
+          />
+          <StatCard
+            icon={CheckCircle} label="In Stock" value={loading ? '…' : inStock}
+            sub={`${stockPct}% availability`}
+            color="#15803d" bg="rgba(21,128,61,.09)"
+          />
+          <StatCard
+            icon={ShoppingBag} label="Sold Out" value={loading ? '…' : soldOut}
+            sub="items need restock"
+            color="#be123c" bg="rgba(190,18,60,.08)"
+          />
+          <StatCard
+            icon={MessageSquare} label="Conversations" value={convUsed}
+            sub={`of ${fmtLimit(convLimit)} this month`}
+            color="#17305A" bg="rgba(23,48,90,.09)"
+          />
+          {isPro && (
+            <StatCard
+              icon={Users} label="Customers" value={loading ? '…' : customers.length}
+              sub="in your CRM"
+              color="#7c3aed" bg="rgba(124,58,237,.09)"
+            />
+          )}
+          <StatCard
+            icon={IndianRupee} label="Catalog Value" value={fmtINR(totalValue)}
+            sub="sum of listed prices"
+            color="#8B6914" bg="rgba(139,105,20,.09)"
+          />
+>>>>>>> f2c6b0f (Initial commit)
         </div>
 
         {/* Charts row */}
@@ -173,7 +315,11 @@ export default function Dashboard({ onNavigate }) {
               <ResponsiveContainer width="100%" height={220}>
                 <BarChart data={catData} barSize={26} margin={{top:4,right:8,left:-24,bottom:0}}>
                   <XAxis dataKey="name" tick={{fontSize:11,fontFamily:'DM Sans',fill:'rgba(11,24,41,.5)'}} axisLine={false} tickLine={false} />
+<<<<<<< HEAD
                   <YAxis tick={{fontSize:10,fontFamily:'DM Sans',fill:'rgba(11,24,41,.4)'}} axisLine={false} tickLine={false} />
+=======
+                  <YAxis tick={{fontSize:10,fontFamily:'DM Sans',fill:'rgba(11,24,41,.4)'}} axisLine={false} tickLine={false} allowDecimals={false}/>
+>>>>>>> f2c6b0f (Initial commit)
                   <Tooltip content={<CustomTooltip/>} cursor={{fill:'rgba(201,168,76,.06)'}} />
                   <Bar dataKey="value" name="Items" radius={[5,5,0,0]}>
                     {catData.map((_, i) => (
@@ -231,16 +377,27 @@ export default function Dashboard({ onNavigate }) {
               </button>
             </div>
             <div className={styles.gaugeList}>
+<<<<<<< HEAD
               <GaugeBar label="Products" used={prods.length} limit={prodLimit} color="#C9A84C"/>
               <GaugeBar label="Conversations" used={convUsed} limit={convLimit} color="#17305A"/>
               {isPro && store?.ai_models && <GaugeBar label="AI Calls" used={store._ai_used||0} limit={store.ai_models} color="#7c3aed"/>}
+=======
+              <GaugeBar label="Products"      used={products.length} limit={prodLimit} color="#C9A84C"/>
+              <GaugeBar label="Conversations" used={convUsed}        limit={convLimit} color="#17305A"/>
+              {hasFeature(store, 'ai_models') && (
+                <GaugeBar label="AI Model Calls" used={aiUsed} limit={aiLimit} color="#7c3aed"/>
+              )}
+>>>>>>> f2c6b0f (Initial commit)
             </div>
           </div>
         </div>
 
         {/* Bottom row */}
         <div className={styles.bottomRow}>
+<<<<<<< HEAD
           {/* Recent products */}
+=======
+>>>>>>> f2c6b0f (Initial commit)
           <div className={styles.listCard}>
             <div className={styles.chartHeader}>
               <div className={styles.chartTitle}>Recent Products</div>
@@ -248,14 +405,22 @@ export default function Dashboard({ onNavigate }) {
                 All inventory <ArrowRight size={12}/>
               </button>
             </div>
+<<<<<<< HEAD
             {prods.length === 0 ? (
+=======
+            {products.length === 0 ? (
+>>>>>>> f2c6b0f (Initial commit)
               <div className={styles.emptyChart}>
                 <Package size={28} strokeWidth={1} color="rgba(11,24,41,.18)"/>
                 <span>No products added yet</span>
               </div>
             ) : (
               <div className={styles.productList}>
+<<<<<<< HEAD
                 {prods.slice(0,5).map(p => (
+=======
+                {products.slice(0,5).map(p => (
+>>>>>>> f2c6b0f (Initial commit)
                   <div key={p.id} className={styles.productRow}>
                     <div className={styles.productThumb}>
                       {p.images?.[0]
@@ -270,14 +435,21 @@ export default function Dashboard({ onNavigate }) {
                     <div className={`${styles.productStatus} ${p.in_stock===true?styles.inStock:styles.soldOut}`}>
                       {p.in_stock === true ? 'In Stock' : 'Sold Out'}
                     </div>
+<<<<<<< HEAD
                     {p.price && <div className={styles.productPrice}>₹{Number(p.price).toLocaleString('en-IN')}</div>}
+=======
+                    {p.price && <div className={styles.productPrice}>{fmtINR(p.price)}</div>}
+>>>>>>> f2c6b0f (Initial commit)
                   </div>
                 ))}
               </div>
             )}
           </div>
 
+<<<<<<< HEAD
           {/* Quick actions */}
+=======
+>>>>>>> f2c6b0f (Initial commit)
           <div className={styles.listCard}>
             <div className={styles.chartHeader}>
               <div className={styles.chartTitle}>Quick Actions</div>
@@ -296,14 +468,23 @@ export default function Dashboard({ onNavigate }) {
 }
 
 function GaugeBar({ label, used, limit, color }) {
+<<<<<<< HEAD
   const isUnlimited = !limit || limit === 'unlimited';
   const pct = isUnlimited ? 0 : Math.min(100, Math.round(used/limit*100));
+=======
+  const isUnlimited = !limit || limit === Infinity || limit === 'unlimited';
+  const pct  = isUnlimited ? 0 : Math.min(100, Math.round(used/limit*100));
+>>>>>>> f2c6b0f (Initial commit)
   const fill = pct>=90?'#ef4444':pct>=70?'#f59e0b':color;
   return (
     <div className={styles.gaugeBar}>
       <div className={styles.gaugeTop}>
         <span className={styles.gaugeLabel}>{label}</span>
+<<<<<<< HEAD
         <span className={styles.gaugeNums}>{used}{!isUnlimited&&<>/{limit}</>}</span>
+=======
+        <span className={styles.gaugeNums}>{used}{!isUnlimited&&<>/{fmtLimit(limit)}</>}</span>
+>>>>>>> f2c6b0f (Initial commit)
       </div>
       {!isUnlimited && (
         <div className={styles.gaugeTrack}>

@@ -6,28 +6,44 @@
   background: var(--cream);
 }
 
+<<<<<<< HEAD
 /* Hero */
 .hero {
   background: linear-gradient(135deg, #0B1829 0%, #17305A 60%, #0B2040 100%);
   padding: 36px 32px 32px;
+=======
+/* Hero — compact single-row layout */
+.hero {
+  background: linear-gradient(115deg, #0B1829 0%, #17305A 65%, #0B2040 100%);
+  padding: 22px 32px;
+>>>>>>> f2c6b0f (Initial commit)
   position: relative;
   overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: space-between;
+<<<<<<< HEAD
+=======
+  gap: 24px;
+>>>>>>> f2c6b0f (Initial commit)
   flex-shrink: 0;
 }
 .hero::before {
   content: '';
   position: absolute;
   inset: 0;
+<<<<<<< HEAD
   background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpolygon points='30,2 58,18 58,42 30,58 2,42 2,18' fill='none' stroke='rgba(201,168,76,0.04)' stroke-width='1'/%3E%3C/svg%3E");
+=======
+  background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpolygon points='30,2 58,18 58,42 30,58 2,42 2,18' fill='none' stroke='rgba(201,168,76,0.045)' stroke-width='1'/%3E%3C/svg%3E");
+>>>>>>> f2c6b0f (Initial commit)
   background-size: 60px 60px;
   pointer-events: none;
 }
 .hero::after {
   content: '';
   position: absolute;
+<<<<<<< HEAD
   bottom: -40px; right: -40px;
   width: 200px; height: 200px;
   border-radius: 50%;
@@ -44,10 +60,40 @@
   margin: 2px 0 6px;
 }
 .heroSub { font-size: 13px; color: rgba(255,255,255,.5); }
+=======
+  bottom: -60px; right: -40px;
+  width: 200px; height: 200px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(201,168,76,.08) 0%, transparent 70%);
+  pointer-events: none;
+}
+.heroLeft { position: relative; z-index: 1; min-width: 0; }
+.heroGreet {
+  font-size: 11px;
+  color: rgba(232,204,122,.6);
+  font-weight: 500;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+.heroNameRow { display: flex; align-items: baseline; gap: 12px; margin-top: 2px; }
+.heroName {
+  font-family: var(--font-display);
+  font-size: 26px;
+  font-weight: 700;
+  color: #F5E9C5;
+  line-height: 1.1;
+}
+.heroSub {
+  font-size: 12px;
+  color: rgba(255,255,255,.5);
+  margin-top: 4px;
+}
+>>>>>>> f2c6b0f (Initial commit)
 .heroBadge {
   display: inline-flex;
   align-items: center;
   gap: 5px;
+<<<<<<< HEAD
   background: rgba(201,168,76,.15);
   border: 1px solid rgba(201,168,76,.25);
   color: #E8CC7A;
@@ -60,6 +106,57 @@
   margin-top: 10px;
 }
 .heroOrb { position: relative; z-index: 1; opacity: .6; }
+=======
+  background: rgba(201,168,76,.18);
+  border: 1px solid rgba(201,168,76,.32);
+  color: #E8CC7A;
+  border-radius: 99px;
+  padding: 3px 10px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+/* Inline mini stats on right side of hero */
+.heroStatsMini {
+  position: relative; z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 14px 22px;
+  background: rgba(255,255,255,.04);
+  border: 1px solid rgba(201,168,76,.15);
+  border-radius: 12px;
+  backdrop-filter: blur(4px);
+}
+.heroStat { text-align: center; min-width: 60px; }
+.heroStatNum {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 700;
+  color: #F5E9C5;
+  line-height: 1;
+}
+.heroStatLbl {
+  font-size: 10px;
+  color: rgba(232,204,122,.55);
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  margin-top: 4px;
+}
+.heroStatDiv {
+  width: 1px; height: 28px;
+  background: rgba(201,168,76,.18);
+}
+
+@media (max-width:768px) {
+  .hero { flex-direction: column; align-items: flex-start; padding: 20px 18px; gap: 16px; }
+  .heroStatsMini { width: 100%; justify-content: space-around; padding: 12px 8px; }
+  .heroName { font-size: 22px; }
+}
+>>>>>>> f2c6b0f (Initial commit)
 
 /* Body */
 .body { padding: 24px 28px 40px; display: flex; flex-direction: column; gap: 24px; }
@@ -272,8 +369,11 @@
   .chartsRow { grid-template-columns: 1fr 1fr; }
 }
 @media (max-width:768px) {
+<<<<<<< HEAD
   .hero { padding:24px 20px; }
   .heroName { font-size:26px; }
+=======
+>>>>>>> f2c6b0f (Initial commit)
   .body { padding:16px 16px 32px; gap:16px; }
   .kpiGrid { grid-template-columns: 1fr 1fr; }
   .chartsRow { grid-template-columns:1fr; }

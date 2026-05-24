@@ -1,6 +1,10 @@
 import React, { useState } from 'react';
 import { AuthProvider, useAuth } from './hooks/useAuth';
 import { ToastProvider } from './hooks/useToast';
+<<<<<<< HEAD
+=======
+import { StoreDataProvider, useStoreData } from './hooks/useStoreData';
+>>>>>>> f2c6b0f (Initial commit)
 import Login from './pages/Login';
 import Pending from './pages/Pending';
 import Dashboard from './pages/Dashboard';
@@ -14,7 +18,10 @@ import Footer from './components/Footer';
 function AppShell() {
   const { authStatus } = useAuth();
   const [activeTab, setActiveTab] = useState('dashboard');
+<<<<<<< HEAD
   const [productCount, setProductCount] = useState(0);
+=======
+>>>>>>> f2c6b0f (Initial commit)
 
   if (authStatus === 'loading') {
     return (
@@ -37,15 +44,36 @@ function AppShell() {
     );
   }
 
+<<<<<<< HEAD
   if (authStatus === 'login') return <Login />;
   if (authStatus === 'pending') return <Pending />;
 
   return (
+=======
+  if (authStatus === 'login')   return <Login />;
+  if (authStatus === 'pending') return <Pending />;
+
+  return (
+    <StoreDataProvider>
+      <Shell activeTab={activeTab} setActiveTab={setActiveTab} />
+    </StoreDataProvider>
+  );
+}
+
+// Inner component so we can read product count from useStoreData
+function Shell({ activeTab, setActiveTab }) {
+  const { products } = useStoreData();
+  return (
+>>>>>>> f2c6b0f (Initial commit)
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', background: 'var(--cream)' }}>
       <Topbar
         activeTab={activeTab}
         onTabChange={setActiveTab}
+<<<<<<< HEAD
         productCount={typeof window._products !== 'undefined' ? window._products.length : 0}
+=======
+        productCount={products.length}
+>>>>>>> f2c6b0f (Initial commit)
       />
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', minHeight: 0 }}>
         {activeTab === 'dashboard'  && <Dashboard onNavigate={setActiveTab} />}
