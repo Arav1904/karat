@@ -120,8 +120,7 @@ export default function Inventory() {
   }, []);
 
   const handleSave = useCallback(async (formData, slotFiles, existingUrls, isEdit, regenAI) => {
-    // Step 1: Upload any new images to Cloudinary first
-    // existingUrls has [null,null,...] slots; slotFiles has new File objects
+    // Upload images to Cloudinary
     const imageUrls = [...existingUrls];
     for (let i = 0; i < 5; i++) {
       if (slotFiles[i]) {
@@ -135,77 +134,35 @@ export default function Inventory() {
         } catch { imageUrls[i] = null; }
       }
     }
-    const finalImages = imageUrls.filter(Boolean);
 
-    // Step 2: Build the base payload with correct DB column names
     const payload = {
-      // Product fields (DB column names)
-      sku:            formData.sku,
-      name:           formData.name,
-      category:       formData.category,
-      sub_category:   formData.sub_category,
-      gold_carat:     formData.gold_carat,
-      diamond_purity: formData.diamond_purity,
-      material:       formData.material,
-      occasion:       formData.occasion,
-      weight:         formData.weight,
-      price:          formData.price,
-      stock_qty:      formData.stock_qty,
-      description:    formData.description,
-      in_stock:       formData.in_stock,
-      owner_id:       user.id,
-      images:         finalImages,
-      primary_image_url: finalImages[0] || null,
-      is_current:     true,
+      ...formData,
+      owner_id: user.id,
+      images: imageUrls.filter(Boolean),  // DB column is `images`
+      primary_image_url: imageUrls.filter(Boolean)[0] || null,
+      is_current: true,
     };
 
-    // Step 3: Decide path
-    // Path A: Edit without AI regen → direct Supabase update (fast, no n8n)
+    let result;
     if (isEdit && !regenAI) {
-      const { data, error } = await db
-        .from('products')
-        .update(payload)
-        .eq('id', editProduct.id)
-        .select()
-        .single();
+      const { data, error } = await db.from('products').update(payload).eq('id', editProduct.id).select().single();
       if (error) throw error;
-      setProducts(prev => prev.map(p => p.id === data.id ? data : p));
-      window._products = (window._products || []).map(p => p.id === data.id ? data : p);
+      result = data;
+      setProducts(prev => prev.map(p => p.id === result.id ? result : p));
+      window._products = products.map(p => p.id === result.id ? result : p);
       showToast('Product updated!', '#166534');
-
     } else {
-      // Path B: New product OR edit+regenAI → via n8n (AI generation)
-      const n8nPayload = {
-        ...payload,
-        // n8n needs these for routing decisions
-        regenAI: !!regenAI,
-        // For edits: send old product ID so n8n can mark it is_current=false
-        ...(isEdit && editProduct ? { old_product_id: editProduct.id } : {}),
-        // Pass existing AI fields so n8n Skip AI path can preserve them
-        ...(isEdit && editProduct ? {
-          ai_title:              editProduct.ai_title              || '',
-          ai_description:        editProduct.ai_description        || '',
-          ai_key_features:       editProduct.ai_key_features       || '',
-          ai_occasions:          editProduct.ai_occasions          || '',
-          ai_care_instructions:  editProduct.ai_care_instructions  || '',
-          ai_whatsapp_summary:   editProduct.ai_whatsapp_summary   || '',
-          ai_style_tip:          editProduct.ai_style_tip          || '',
-        } : {}),
-      };
-
+      const n8nPayload = { ...payload };
+      if (isEdit) { n8nPayload.old_product_id = editProduct.id; }
       const res = await fetch(N8N_UPLOAD_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(n8nPayload),
       });
-      if (!res.ok) {
-        const errText = await res.text().catch(() => 'Unknown error');
-        throw new Error(`n8n upload failed: ${errText}`);
-      }
+      if (!res.ok) throw new Error('Upload failed');
       await loadProducts();
       showToast(isEdit ? 'Product updated with fresh AI content!' : 'Product added!', '#166534');
     }
-
     setModalOpen(false);
     setEditProduct(null);
   }, [user, editProduct, loadProducts, showToast, products]);
